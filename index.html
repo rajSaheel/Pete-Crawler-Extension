@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Peté Crawlér</title>
+
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+	<!-- Wrapper -->
+	<section class="wrapper">
+		<!-- Grading-Div -->
+		<span class="sign-out-btn"><i class="fa fa-sign-out"></i></span>
+		<div class="grade-class" id="grade-id">
+			<h1 class="rating-label upper-label">Loading...please wait</h1>
+			<!-- Stars -->
+			<div class="star-collection" id="star-collection-id">
+				<span class="rating-star fa fa-star fa-4x" id="star-1"></span>
+				<span class="rating-star fa fa-star fa-4x" id="star-2"></span>
+				<span class="rating-star fa fa-star fa-4x" id="star-3"></span>
+				<span class="rating-star fa fa-star fa-4x" id="star-4"></span>
+				<span class="rating-star fa fa-star fa-4x" id="star-5"></span>
+			</div>
+			<h1 class="rating-label lower-label"></h1>
+		</div>
+
+		<section class="loading-wrapper">
+			<div class="loader">
+				<div class="loading one"></div>
+				<div class="loading two"></div>
+				<div class="loading three"></div>
+				<div class="loading four"></div>
+			</div>
+		</section>
+
+		<!-- Detailed-report-Div -->
+		<div id="detailed-wrap">
+			<span class="fa fa-angle-down fa-2x" id="show-btn"></span>
+			<div id="scores">
+				<div id="performance-id" class="score-class">
+					<svg class="progress" width="100" height="100">
+						<circle class="progress-circle" cx="50" cy="50" stroke="blue" r="30" fill="transparent"
+							stroke-width="10" />
+						<text class="score-value" fill="white" x="50" y="50" alignment-baseline="middle"
+							text-anchor="middle"></text>
+					</svg>
+					<span class="score-label" id="performance-label">Performance</span>
+				</div>
+				<div id="seo-id" class="score-class">
+					<svg class="progress" width="100" height="100">
+						<circle class="progress-circle" cx="50" cy="50" stroke="blue" r="30" fill="transparent"
+							stroke-width="10" />
+						<text class="score-value" fill="white" x="50" y="50" alignment-baseline="middle"
+							text-anchor="middle"></text>
+					</svg>
+					<span class="score-label" id="seo-label">SEO</span>
+				</div>
+				<div id="accessibility-id" class="score-class">
+					<svg class="progress" width="100" height="100">
+						<circle class="progress-circle" cx="50" cy="50" stroke="blue" r="30" fill="transparent"
+							stroke-width="10" />
+						<text class="score-value" fill="white" x="50" y="50" alignment-baseline="middle"
+							text-anchor="middle"></text>
+					</svg>
+					<span class="score-label" id="accessibility-label">Security</span>
+				</div>
+				<div id="best-practices-id" class="score-class">
+					<svg class="progress" width="100" height="100">
+						<circle class="progress-circle" cx="50" cy="50" stroke="blue" r="30" fill="transparent"
+							stroke-width="10" />
+						<text class="score-value" fill="white" x="50" y="50" alignment-baseline="middle"
+							text-anchor="middle"></text>
+					</svg>
+					<span class="score-label" id="best-practices-label">Best-practices</span>
+				</div>
+				<div id="security-id" class="score-class">
+				</div>
+			</div>
+
+		</div>
+
+		<!-- Line-Break -->
+		<hr style="
+          height: 2px;
+          border-width: 0;
+          color: #fff;
+          background-color: #fff;
+        " />
+		<!-- Input-Div -->
+		<div class="input-class" id="input-class-id">
+			<a class="bn39" id="crawl-btn"><span class="bn39span">Crawl a Link</span></a>
+			<div class="input-class-elem"><input name="link-input" id="link-input-id" type="text"
+					placeholder="Enter the link" /><a class="bn39"><span class="bn39span"
+						id="link-input-btn">Go</span></a></div>
+		</div>
+	</section>
+
+	<!-- auth section -->
+	<section class="auth-wrapper">
+
+		<div class="sign-in-wrap">
+			
+			<form class="sign-in-form">
+				<h3 id="form-title">Sign In</h3>
+				<span class="alert sign-in-alert">
+
+				</span>
+				<!-- <label for="username">Username</label> -->
+				<input type="text" placeholder="Email" id="email" required>
+
+				<!-- <label for="password">Password</label> -->
+				<input type="password" placeholder="Password" class="password sign-in-password" name="password" required>
+
+				<button id="sign-in-btn">Sign In</button>
+				<div class="alter-auth">
+					<span class="go">Don't have an account? <span class="alter-auth-btn">Sign Up</span></span>
+				</div>
+			</form>
+		</div>
+
+		<div class="sign-up-wrap">
+
+			<form class="sign-up-form">
+				<h3 id="form-title">Sign Up</h3>
+
+				<span class="alert sign-up-alert">
+
+				</span>
+				<input type="text" placeholder="Full Name" name="name" required>
+
+				<!-- <label for="username">Username</label> -->
+				<input type="email" placeholder="Email" name="email" required>
+
+				<!-- <label for="password">Password</label> -->
+				<input type="password" placeholder="Password" class="password sign-in-password" name="password" required>
+
+				<span class="form-radio">
+					<span><input type="radio" name="profession" value="STUDENT" checked>Student</input></span>
+					<span><input type="radio" name="profession" value="PROFESSIONAL">Professional</input></span>
+					<span><input type="radio" name="profession" value="OTHER">Other</input></span>
+				</span>
+
+				<button id="sign-up-btn" type="submit">Sign Up</button>
+				<div class="alter-auth">
+					<span class="go">Already have an account? <span class="alter-auth-btn">Sign In</span></span>
+				</div>
+			</form>
+
+		</div>
+
+	</section>
+
+
+	<script type="module" src="app.js"></script>
+	<!-- <script src="https://accounts.google.com/js/" async defer></script> -->
+	<audio src="./assets/success.mp3" id="success"></audio>
+	<audio src="./assets/failure.mp3" id="failure"></audio>
+
+	<!-- <script src="https://apis.google.com/js/platform.js" async defer></script> -->
+</body>
+
+</html>
