@@ -1,7 +1,9 @@
 import fetchLightHouseReport from "./utils/lighthouse.js"
 import signIn from "./services/signIn.js"
 import signUp from "./services/signUp.js"
-import { retrieveUser , saveUserLocally,removeUser } from "./services/storage.js"
+import addRating from "./services/addRating.js"
+import { retrieveUser, saveUserLocally, removeUser } from "./services/storage.js"
+import getRating from "./services/getRating.js"
 
 // global constants
 let scoresGlobal = {}
@@ -30,34 +32,44 @@ const signInForm = document.querySelector(".sign-in-form")
 const signUpForm = document.querySelector(".sign-up-form")
 const signoutBtn = document.querySelector(".sign-out-btn")
 
-const clearSignInForm = ()=>{
-	signInForm["email"].value=""
-	signInForm["password"].value=""
+const clearSignInForm = () => {
+	signInForm["email"].value = ""
+	signInForm["password"].value = ""
 	authWrapper.querySelector(".sign-in-alert").textContent = ""
 }
 
-const clearSignUpForm = ()=>{
-	signUpForm["name"].value=""
-	signUpForm["email"].value=""
-	signUpForm["password"].value=""
+const clearSignUpForm = () => {
+	signUpForm["name"].value = ""
+	signUpForm["email"].value = ""
+	signUpForm["password"].value = ""
 	authWrapper.querySelector(".sign-up-alert").textContent = ""
 }
 
-const toggleContent = ()=>{
+const toggleContent = () => {
 	console.log(auth)
-	if(auth){
+	if (auth) {
 		wrapper.style.display = "flex"
-		authWrapper.style.display="none"
-	}else{
+		authWrapper.style.display = "none"
+		// fetching current url
+
+		chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+			url = tabs[0].url
+			try {
+				crawl(url)
+			} catch (e) {
+				displayRating(undefined)
+			}
+		})
+	} else {
 		wrapper.style.display = "none"
-		authWrapper.style.display="block"
+		authWrapper.style.display = "block"
 	}
 }
 
 
-	//toggle details
+//toggle details
 toggle.addEventListener("click", () => {
-	if (scoresWrap.style.display=="none") {
+	if (scoresWrap.style.display == "none") {
 		scoresWrap.style.display = "grid"
 		displayScores(scoresGlobal)
 		toggle.style.rotate = "180deg"
@@ -89,7 +101,7 @@ const getInputElem = () => {
 	inputClassElem[0].style.display = "flex"
 }
 
-crawlBtn.addEventListener("click",getInputElem)
+crawlBtn.addEventListener("click", getInputElem)
 
 // getting rating of input link
 const crawlInputLink = () => {
@@ -115,13 +127,13 @@ const crawlInputLink = () => {
 
 	} else {
 		displayRating(undefined)
-		crawlBtn.style.display="block"
+		crawlBtn.style.display = "block"
 	}
 }
 
 inputLinkBtn.addEventListener("click", crawlInputLink)
 
-//
+/*
 const getPoints = async (obj) => {
 	try {
 		points = await obj.getPoints()
@@ -135,6 +147,8 @@ const getPoints = async (obj) => {
 		ratingLabel[0].textContent = "Something went wrong"
 	}
 }
+*/
+
 
 //Display Stars
 const displayRating = (points) => {
@@ -204,23 +218,34 @@ const displayScores = (scores) => {
 
 }
 
-// fetching current url
 
-// chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-//     url = tabs[0].url
-//     try{
-// 		crawl(url)
-// 	}catch(e){
-// 		displayRating(undefined)
-// 	}
-// })
 
 const randomURL = "https://youtube.com"
 
 // contacting API
 const crawl = async (url) => {
+
 	loading.style.display = "flex"
-	scoresGlobal = await fetchLightHouseReport(url)
+	let response = await getRating(url)
+	if (response.status === "R10002") {
+		scoresGlobal = {
+			seoScore: response.seo,
+			performanceScore: response.performance,
+			accessibilityScore: response.security,
+			bestPracticesScore: response.bestPractices
+		}
+	} else if (response.status === "R10004") {
+		scoresGlobal = await fetchLightHouseReport(url)
+		response = await addRating({
+			uid:parseInt(auth),
+			link:url,
+			seo:scoresGlobal.seoScore,
+			performance:scoresGlobal.performanceScore,
+			bestPractices:scoresGlobal.bestPracticesScore,
+			security:scoresGlobal.accessibilityScore,
+			total:(Math.round(((scoresGlobal.seoScore+scoresGlobal.performanceScore+scoresGlobal.bestPracticesScore+scoresGlobal.accessibilityScore)/5)*100)/100)
+		})
+	}
 	const stars = calculateStars(scoresGlobal)
 	loading.style.display = " none"
 	displayRating(stars)
@@ -229,7 +254,7 @@ const crawl = async (url) => {
 	document.querySelector("#detailed-wrap").style.display = "flex"
 	scoresWrap.style.display = "none"
 	crawlBtn.style.display = "block"
-	
+
 }
 
 // calculating rating
@@ -253,7 +278,7 @@ const getColor = (score) => {
 
 const debbugCrawl = () => {
 	loading.style.display = "flex"
-	scoresGlobal = {accessibilityScore:0.8,seoScore:0.6,bestPracticesScore:0.3,performanceScore:1}
+	scoresGlobal = { accessibilityScore: 0.8, seoScore: 0.6, bestPracticesScore: 0.3, performanceScore: 1 }
 	// const stars = calculateStars(scoresGlobal)
 	loading.style.display = " none"
 	displayRating(4)
@@ -262,85 +287,85 @@ const debbugCrawl = () => {
 	document.querySelector("#detailed-wrap").style.display = "flex"
 	scoresWrap.style.display = "none"
 	crawlBtn.style.display = "block"
-	
+
 }
 
 
 
-const toggleAuth=()=>{
-	if(authState=="SIGN_IN"){
+const toggleAuth = () => {
+	if (authState == "SIGN_IN") {
 		clearSignInForm()
-		authState="SIGN_UP"
-		authWrapper.querySelector(".sign-up-wrap").style.display="block"
-		authWrapper.querySelector(".sign-in-wrap").style.display="none"
-		
-	}else{
+		authState = "SIGN_UP"
+		authWrapper.querySelector(".sign-up-wrap").style.display = "block"
+		authWrapper.querySelector(".sign-in-wrap").style.display = "none"
+
+	} else {
 		clearSignUpForm()
-		authState="SIGN_IN"
-		authWrapper.querySelector(".sign-in-wrap").style.display="block"
-		authWrapper.querySelector(".sign-up-wrap").style.display="none"
+		authState = "SIGN_IN"
+		authWrapper.querySelector(".sign-in-wrap").style.display = "block"
+		authWrapper.querySelector(".sign-up-wrap").style.display = "none"
 	}
 }
 
 
-alterAuthBtn[0].addEventListener("click",toggleAuth)
-alterAuthBtn[1].addEventListener("click",toggleAuth)
+alterAuthBtn[0].addEventListener("click", toggleAuth)
+alterAuthBtn[1].addEventListener("click", toggleAuth)
 
 
-signInBtn.addEventListener("click",async(e)=>{
+signInBtn.addEventListener("click", async (e) => {
 	e.preventDefault()
-	try{
+	try {
 		const response = await signIn({
-			username:signInForm["email"].value,
-			password:signInForm["password"].value,
+			username: signInForm["email"].value,
+			password: signInForm["password"].value,
 		})
 		console.log(response)
-		if(response.status==="S10003"){
-			auth=await saveUserLocally(response.uid)
+		if (response.status === "S10003") {
+			auth = await saveUserLocally(response.uid)
 			clearSignInForm()
 			toggleContent()
-		}else if(response.status==="S10005"){
+		} else if (response.status === "S10005") {
 			authWrapper.querySelector(".sign-in-alert").textContent = "Password did not match!"
-		}else if(response.status==="S10006"){
+		} else if (response.status === "S10006") {
 			authWrapper.querySelector(".sign-in-alert").textContent = "User not Signed Up!"
 		}
-	}catch(e){
+	} catch (e) {
 		console.error(e)
 	}
-	
+
 })
 
-signUpBtn.addEventListener("click",async(e)=>{
+signUpBtn.addEventListener("click", async (e) => {
 	console.log({
-		name:signUpForm["name"].value,
-		username:signUpForm["email"].value,
-		password:signUpForm["password"].value,
-		profession:signUpForm["profession"].value
+		name: signUpForm["name"].value,
+		username: signUpForm["email"].value,
+		password: signUpForm["password"].value,
+		profession: signUpForm["profession"].value
 	})
 	e.preventDefault()
-	try{
+	try {
 		const response = await signUp({
-			name:signUpForm["name"].value,
-			username:signUpForm["email"].value,
-			password:signUpForm["password"].value,
-			profession:signUpForm["profession"].value
+			name: signUpForm["name"].value,
+			username: signUpForm["email"].value,
+			password: signUpForm["password"].value,
+			profession: signUpForm["profession"].value
 		})
 
-		if(response.status==="S10001"){
+		if (response.status === "S10001") {
 			authWrapper.querySelector(".sign-up-alert").textContent = "User already Signed Up!"
-		}else if(response.state==="S10002"){
+		} else if (response.state === "S10002") {
 			clearSignUpForm()
 			auth = await saveUserLocally()
 			toggleContent()
 		}
-	}catch(e){
+	} catch (e) {
 		console.error(e)
 	}
-	
+
 })
 
-signoutBtn.addEventListener("click",async()=>{
-	auth= await removeUser()
+signoutBtn.addEventListener("click", async () => {
+	auth = await removeUser()
 	toggleContent()
 })
 
