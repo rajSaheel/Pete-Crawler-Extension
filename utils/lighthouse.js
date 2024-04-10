@@ -9,10 +9,10 @@ const fetchLightHouseReport = (url) => {
 			const response = await fetch(apiUrl)
 			const data = await response.json()
 
-			const accessibilityScore = data.lighthouseResult.categories.accessibility.score
-			const seoScore = data.lighthouseResult.categories.seo.score
-			const performanceScore = data.lighthouseResult.categories.performance.score
-			const bestPracticesScore = data.lighthouseResult.categories['best-practices'].score
+			const accessibilityScore = data.lighthouseResult.categories.accessibility.score*10
+			const seoScore = data.lighthouseResult.categories.seo.score*10
+			const performanceScore = data.lighthouseResult.categories.performance.score*10
+			const bestPracticesScore = data.lighthouseResult.categories['best-practices'].score*10
 			console.log("Done")
 			resolve({ accessibilityScore, seoScore, performanceScore, bestPracticesScore })
 

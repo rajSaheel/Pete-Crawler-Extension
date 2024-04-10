@@ -6,16 +6,16 @@ const singIn = ({username,password})=>{
     return new Promise(async(resolve,reject)=>{
         try{
             const response = await fetch(url,{
-                body:JSON.stringify({ username: username, password: password }),
+                body:JSON.stringify({username,password}),
                 method:"POST",
                 headers: {
                     'Content-Type': 'application/json'
                 },
             })
-            // console.log(response,typeof(response))
             resolve(response.json())
     
         }catch(e){
+            console.log(e)
             reject(e)
         }
     })
