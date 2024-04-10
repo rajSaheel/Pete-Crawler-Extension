@@ -12,7 +12,6 @@ const singUp = ({username, name, password, profession})=>{
                     'Content-Type': 'application/json'
                 },
             })
-            // console.log(response,typeof(response))
             resolve(response.json())
         }catch(e){
             console.log(e)

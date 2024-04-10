@@ -46,17 +46,17 @@ const clearSignUpForm = () => {
 }
 
 const toggleContent = () => {
-	console.log(auth)
 	if (auth) {
 		wrapper.style.display = "flex"
 		authWrapper.style.display = "none"
 		// fetching current url
 
 		chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-			url = tabs[0].url
+			let url = tabs[0].url
 			try {
 				crawl(url)
 			} catch (e) {
+
 				displayRating(undefined)
 			}
 		})
@@ -73,13 +73,11 @@ toggle.addEventListener("click", () => {
 		scoresWrap.style.display = "grid"
 		displayScores(scoresGlobal)
 		toggle.style.rotate = "180deg"
-		console.log("opened")
 
 	}
 	else {
 		scoresWrap.style.display = "none"
 		toggle.style.rotate = "0deg"
-		console.log("closed")
 	}
 })
 
@@ -152,14 +150,13 @@ const getPoints = async (obj) => {
 
 //Display Stars
 const displayRating = (points) => {
-	if (points != undefined) {
-		const pointsFloor = Math.floor(points)
-		const rem = (points - pointsFloor) * 100
+	if (points !== undefined && points !== null) {
+		const pointsRound = Math.round(points)
 		ratingLabel[0].textContent = "Peté gives"
 		ratingLabel[1].textContent = "to this link"
 		let i = 0
 		for (i; i < 5; i++) {
-			if (i < pointsFloor) {
+			if (i < pointsRound) {
 				starArr[i].style.display = "flex"
 				starArr[i].style.color = `#FFD700`
 			} else {
@@ -168,11 +165,18 @@ const displayRating = (points) => {
 		}
 		successAudio.play()
 		return
-	} else {
-		ratingLabel[0].textContent = "No website Found"
+	} else if (points === null) {
+		ratingLabel[0].textContent = "No website found!"
 		ratingLabel[1].textContent = ""
 		for (let i = 0; i < 5; i++) {
-			starArr[i].style.color = "rgb(206, 213, 219)"
+			starArr[i].style.display = "none"
+		}
+		failureAudio.play()
+		return
+	} else if (points === undefined) {
+		ratingLabel[0].textContent = "Something went wrong!"
+		ratingLabel[1].textContent = ""
+		for (let i = 0; i < 5; i++) {
 			starArr[i].style.display = "none"
 		}
 		failureAudio.play()
@@ -181,38 +185,35 @@ const displayRating = (points) => {
 }
 
 const displayScores = (scores) => {
-
-	document.getElementById("detailed-wrap").style.display = "flex"
-
-	let score = Math.round(scores.performanceScore * 10)
+	let score = Math.round(scores.performanceScore)
 	const performance = document.querySelector("#performance-id .progress-circle");
 	let scoreVal = document.querySelector("#performance-id .score-value");
 	let circumference = performance.getTotalLength();
-	performance.style.strokeDashoffset = (1 - (scores.performanceScore)) * circumference;
+	performance.style.strokeDashoffset = (1 - scores.performanceScore / 10) * circumference;
 	scoreVal.innerHTML = `${score}/10`;
 	performance.style.stroke = getColor(score)
 
 
-	score = Math.round(scores.seoScore * 10)
+	score = Math.round(scores.seoScore)
 	const seo = document.querySelector("#seo-id .progress-circle");
 	scoreVal = document.querySelector("#seo-id .score-value");
-	seo.style.strokeDashoffset = (1 - (scores.seoScore)) * circumference;
+	seo.style.strokeDashoffset = (1 - scores.seoScore / 10) * circumference;
 	scoreVal.innerHTML = `${score}/10`;
 	seo.style.stroke = getColor(score)
 
 
-	score = Math.round(scores.accessibilityScore * 10)
+	score = Math.round(scores.securityScore)
 	const accessibility = document.querySelector("#accessibility-id .progress-circle");
 	scoreVal = document.querySelector("#accessibility-id .score-value");
-	accessibility.style.strokeDashoffset = (1 - (scores.accessibilityScore)) * circumference;
+	accessibility.style.strokeDashoffset = (1 - scores.securityScore / 10) * circumference;
 	scoreVal.innerHTML = `${score}/10`;
 	accessibility.style.stroke = getColor(score)
 
 
-	score = Math.round(scores.bestPracticesScore * 10)
+	score = Math.round(scores.bestPracticesScore)
 	const code = document.querySelector("#best-practices-id .progress-circle");
 	scoreVal = document.querySelector("#best-practices-id .score-value");
-	code.style.strokeDashoffset = (1 - (scores.bestPracticesScore)) * circumference;
+	code.style.strokeDashoffset = (1 - scores.bestPracticesScore / 10) * circumference;
 	scoreVal.innerHTML = `${score}/10`;
 	code.style.stroke = getColor(score)
 
@@ -224,36 +225,46 @@ const randomURL = "https://youtube.com"
 
 // contacting API
 const crawl = async (url) => {
-
 	loading.style.display = "flex"
-	let response = await getRating(url)
-	if (response.status === "R10002") {
-		scoresGlobal = {
-			seoScore: response.seo,
-			performanceScore: response.performance,
-			accessibilityScore: response.security,
-			bestPracticesScore: response.bestPractices
+	try {
+		let response = await getRating(url)
+		if (response.status === "R10002") {
+			scoresGlobal = {
+				seoScore: response.seo,
+				performanceScore: response.performance,
+				securityScore: response.security,
+				bestPracticesScore: response.bestPractices
+			}
+
+		} else if (response.status === "R10004") {
+			scoresGlobal = await fetchLightHouseReport(url)
+			let total = (scoresGlobal.seoScore + scoresGlobal.performanceScore + scoresGlobal.bestPracticesScore + scoresGlobal.securityScore) / 8
+			response = await addRating({
+				uid: auth,
+				link: url,
+				seo: scoresGlobal.seoScore,
+				performance: scoresGlobal.performanceScore,
+				bestPractices: scoresGlobal.bestPracticesScore,
+				security: scoresGlobal.securityScore,
+				total:total.toFixed(2)
+			})
 		}
-	} else if (response.status === "R10004") {
-		scoresGlobal = await fetchLightHouseReport(url)
-		response = await addRating({
-			uid:parseInt(auth),
-			link:url,
-			seo:scoresGlobal.seoScore,
-			performance:scoresGlobal.performanceScore,
-			bestPractices:scoresGlobal.bestPracticesScore,
-			security:scoresGlobal.accessibilityScore,
-			total:(Math.round(((scoresGlobal.seoScore+scoresGlobal.performanceScore+scoresGlobal.bestPracticesScore+scoresGlobal.accessibilityScore)/5)*100)/100)
-		})
+		const stars = calculateStars(scoresGlobal)
+		loading.style.display = " none"
+		displayRating(stars)
+		console.log(scoresGlobal)
+		console.log(stars)
+		document.getElementById("detailed-wrap").style.display = "flex"
+		scoresWrap.style.display = "none"
+		crawlBtn.style.display = "block"
+	} catch (e) {
+		console.log(e)
+		displayRating(undefined)
+		loading.style.display = " none"
+		crawlBtn.style.display = "block"
 	}
-	const stars = calculateStars(scoresGlobal)
-	loading.style.display = " none"
-	displayRating(stars)
-	console.log(scoresGlobal)
-	console.log(stars)
-	document.querySelector("#detailed-wrap").style.display = "flex"
-	scoresWrap.style.display = "none"
-	crawlBtn.style.display = "block"
+
+
 
 }
 
@@ -261,9 +272,9 @@ const crawl = async (url) => {
 const calculateStars = (scores) => {
 	let star = 0
 	for (let score of Object.values(scores)) {
-		star += score
+		star += parseFloat(score)
 	}
-	return star * 50 / 40
+	return star * 5 / 40
 }
 
 // choosing theme color
@@ -278,12 +289,10 @@ const getColor = (score) => {
 
 const debbugCrawl = () => {
 	loading.style.display = "flex"
-	scoresGlobal = { accessibilityScore: 0.8, seoScore: 0.6, bestPracticesScore: 0.3, performanceScore: 1 }
+	scoresGlobal = { securityScore: 0.8, seoScore: 0.6, bestPracticesScore: 0.3, performanceScore: 1 }
 	// const stars = calculateStars(scoresGlobal)
 	loading.style.display = " none"
 	displayRating(4)
-	// console.log(scoresGlobal)
-	// console.log(stars)
 	document.querySelector("#detailed-wrap").style.display = "flex"
 	scoresWrap.style.display = "none"
 	crawlBtn.style.display = "block"
@@ -319,7 +328,6 @@ signInBtn.addEventListener("click", async (e) => {
 			username: signInForm["email"].value,
 			password: signInForm["password"].value,
 		})
-		console.log(response)
 		if (response.status === "S10003") {
 			auth = await saveUserLocally(response.uid)
 			clearSignInForm()
@@ -336,12 +344,6 @@ signInBtn.addEventListener("click", async (e) => {
 })
 
 signUpBtn.addEventListener("click", async (e) => {
-	console.log({
-		name: signUpForm["name"].value,
-		username: signUpForm["email"].value,
-		password: signUpForm["password"].value,
-		profession: signUpForm["profession"].value
-	})
 	e.preventDefault()
 	try {
 		const response = await signUp({
@@ -365,14 +367,16 @@ signUpBtn.addEventListener("click", async (e) => {
 })
 
 signoutBtn.addEventListener("click", async () => {
-	auth = await removeUser()
-	toggleContent()
+	if (confirm("Are you sure you want to sign out?")) {
+		auth = await removeUser()
+		toggleContent()
+	}
+
+
 })
 
 
 
 toggleContent()
-// setTimeout(()=>{
-// 	debbugCrawl()
-// },10000)
+
 

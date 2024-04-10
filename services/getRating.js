@@ -6,7 +6,7 @@ const getRating = (link)=>{
         
         try{
             const response = await fetch(url,{
-                body:JSON.stringify({link:link}),
+                body:JSON.stringify({link}),
                 method:"POST",
                 headers: {
                     'Content-Type': 'application/json'

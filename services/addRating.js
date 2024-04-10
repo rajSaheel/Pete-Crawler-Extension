@@ -3,17 +3,16 @@ const url = `${SERVER}/add_rating.php`
 
 const addRating = ({uid,link,seo,performance,security,bestPractices,total})=>{
     return new Promise(async(resolve,reject)=>{
-        console.log(JSON.stringify({uid,link,seo,performance,security,bestPractices,total}))
+        const body = {uid,link,seo,performance,security,bestPractices,total}
         try{
             const response = await fetch(url,{
-                body:JSON.stringify({uid,link,seo,performance,security,bestPractices}),
+                body:JSON.stringify(body),
                 method:"POST",
                 headers: {
                     'Content-Type': 'application/json'
                 },
             })
-            const data =response.json()
-            resolve(data)
+            resolve(response.json())
 
         }catch(e){
             console.log(e)
